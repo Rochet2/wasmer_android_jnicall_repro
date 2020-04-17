@@ -11,7 +11,8 @@ use jni::{
     JNIEnv, JavaVM,
 };
 use std::sync::Mutex;
-use wasmer_runtime::{compile, func, imports, Ctx, ImportObject, Instance, Module};
+
+use wasmtime::{Store, Module, Instance, Func};
 
 lazy_static! {
     static ref ENV: Mutex<Option<JavaVM>> = { Mutex::new(None) };
@@ -48,28 +49,30 @@ pub unsafe extern "C" fn Java_com_wasmer_android_MainActivity_JNIExecuteWasm(
     java_test();
 
     // fails to call java_test
-    main_instance.call("main", &[]).unwrap();
+    let function = main_instance
+        .get_export("main")
+        .unwrap()
+        .func()
+        .expect("`main` is not an exported function");
+
+    function.call(&[]).expect("Couldn't call the function");
 
     java_test();
 }
 
 pub fn load_module(module_bytes: &[u8]) -> Instance {
-    // Compile the module.
-    let module = compile(&module_bytes).unwrap();
-    // Create the ImportObject with our interface imported.
-    let import_object = create_import_object(&module);
-    // Instantiate the module.
-    let module_instance = module.instantiate(&import_object).unwrap();
-    module_instance
+    let store = Store::default();
+    let module = Module::from_binary(&store, module_bytes).expect("Cannot load file from binary");
+    let func = test_func(&store);
+    let instance = Instance::new(&module, &[func.into()]);
+
+    instance.expect("Couldn't create an instance")
 }
 
-fn create_import_object(_module: &Module) -> ImportObject {
-    let import_object = imports! {
-        "env" => {
-            "Test" => func!(java_test),
-        },
-    };
-    import_object
+fn test_func(store: &Store) -> Func {
+    Func::wrap(store, || {
+        java_test()
+    })
 }
 
 fn java_test() {

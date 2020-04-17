@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
             Thread.sleep(2000);
 
             // Load runtime code
-            System.loadLibrary("wasmer_android");
+            System.loadLibrary("wasmtime_android");
 
             // default code of the empty activity example
             super.onCreate(savedInstanceState);
