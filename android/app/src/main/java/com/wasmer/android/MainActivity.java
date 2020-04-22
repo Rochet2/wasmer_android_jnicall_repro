@@ -10,19 +10,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
-    private static native void JNIExecuteWasm(MainActivity self, byte[] module_bytes) throws Exception;
-
-    @Keep
-    public void Test() {
-        System.out.println("Test was called from WASM!");
-    }
+    private static native void JNIExecuteWasm(byte[] module_bytes) throws Exception;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try {
             // Wait for debugger to attach so
             // we can see all output
-            Thread.sleep(2000);
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            System.out.println("HERE");
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            System.out.println("HERE");
+
 
             // Load runtime code
             System.loadLibrary("wasmer_android");
@@ -44,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Run the file
             System.out.println("Calling JNIExecuteWasm!");
-            JNIExecuteWasm(this, module_bytes);
+            JNIExecuteWasm(module_bytes);
             System.out.println("Finished calling JNIExecuteWasm!");
         } catch (Exception e) {
             e.printStackTrace();

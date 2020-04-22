@@ -9,8 +9,8 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$/../../../../../local/rimi/Documents/test/wasmertest/android" />
-            <option value="$PROJECT_DIR$/../../../../../local/rimi/Documents/test/wasmertest/android/app" />
+            <option value="$PROJECT_DIR$/../../../../../../local/rimi/Documents/test/ASD/wasmer_android_jnicall_repro/android" />
+            <option value="$PROJECT_DIR$/../../../../../../local/rimi/Documents/test/ASD/wasmer_android_jnicall_repro/android/app" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

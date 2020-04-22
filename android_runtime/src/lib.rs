@@ -1,4 +1,3 @@
-#[macro_use] extern crate lazy_static;
 extern crate jni;
 #[macro_use] extern crate log;
 extern crate android_logger;
@@ -6,23 +5,17 @@ extern crate android_logger;
 use log::Level;
 use android_logger::Config;
 use jni::{
-    objects::{GlobalRef, JClass, JObject},
+    objects::JClass,
     sys::jbyteArray,
-    JNIEnv, JavaVM,
+    JNIEnv
 };
-use std::sync::Mutex;
-use wasmer_runtime::{compile, func, imports, Ctx, ImportObject, Instance, Module};
 
-lazy_static! {
-    static ref ENV: Mutex<Option<JavaVM>> = { Mutex::new(None) };
-    static ref CLASS: Mutex<Option<GlobalRef>> = { Mutex::new(None) };
-}
+use wasmer_runtime::{compile, imports, Instance};
 
 #[no_mangle]
 pub unsafe extern "C" fn Java_com_wasmer_android_MainActivity_JNIExecuteWasm(
     env: JNIEnv,
     _: JClass,
-    callback: JObject,
     module_bytes: jbyteArray,
 ) {
     android_logger::init_once(
@@ -37,51 +30,20 @@ pub unsafe extern "C" fn Java_com_wasmer_android_MainActivity_JNIExecuteWasm(
     let module_bytes = env.convert_byte_array(module_bytes).unwrap();
     let main_instance = load_module(&module_bytes);
 
-    // set global variables
-    let class = env.new_global_ref(callback).unwrap();
-    *CLASS.lock().unwrap() = Some(class);
-    let vm = env.get_java_vm().unwrap();
-    *ENV.lock().unwrap() = Some(vm);
-
-    // Succeeds
-    java_test();
-    java_test();
-
-    // fails to call java_test
-    main_instance.call("main", &[]).unwrap();
-
-    java_test();
+    // main inside wasm fails
+    info!("MODULE CALL STARTING!");
+    let x = main_instance.call("run", &[]);
+    info!("FOOBAR: {:?}", x);
+    info!("MODULE CALL FINISHED!");
 }
 
 pub fn load_module(module_bytes: &[u8]) -> Instance {
     // Compile the module.
     let module = compile(&module_bytes).unwrap();
     // Create the ImportObject with our interface imported.
-    let import_object = create_import_object(&module);
+    let import_object = imports! {};
     // Instantiate the module.
     let module_instance = module.instantiate(&import_object).unwrap();
     module_instance
 }
 
-fn create_import_object(_module: &Module) -> ImportObject {
-    let import_object = imports! {
-        "env" => {
-            "Test" => func!(java_test),
-        },
-    };
-    import_object
-}
-
-fn java_test() {
-    // Get env.
-    let ovm = &*ENV.lock().unwrap();
-    let vm = ovm.as_ref().unwrap();
-    let env = vm.get_env().unwrap();
-    // Get the class.
-    let o_class = &*CLASS.lock().unwrap();
-    let class_ref = o_class.as_ref().unwrap();
-    let class = class_ref.as_obj();
-    // Call java code.
-    env.call_method(*class, "Test", "()V", &[])
-        .unwrap();
-}
