@@ -14,11 +14,11 @@ pub fn run() -> i64 {
 		// Changing the return type to f64 makes it work
 		// In that case you must return for example res as f64
 
-		if i == 100 {
-			return res; // return res as f64;
-		}
 		if 1 == x1 as i32  {
 			res += 1
+		}
+		if i == 100 {
+			return res; // return res as f64;
 		}
 		if 1 == y1 as i32 {
 			res += 1
@@ -26,4 +26,3 @@ pub fn run() -> i64 {
 	}
 	res
 }
-
